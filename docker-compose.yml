@@ -1,0 +1,52 @@
+version: '3.4'
+
+secrets:
+  set_kestrel_cert_password:
+    file: ./certificate_password.txt
+
+services:
+  dapr.test.frontend:
+    image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/frontend:0.0.1
+    secrets:
+      - certificate_password
+    build:
+      context: .
+      dockerfile: DAPR.Test.Frontend/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - /run/secrets/set_kestrel_cert_password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "51000:50001"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  dapr.test.frontend-dapr:
+    image: "daprio/daprd:latest"
+    command: [ "./daprd", "--app-id", "Frontend", "--app-port", "80", "--app-ssl" ]
+    depends_on:
+      - dapr.test.frontend
+    network_mode: "service:dapr.test.frontend"
+
+  dapr.test.api:
+    image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/api:0.0.1
+    secrets:
+      - certificate_password
+    build:
+      context: .
+      dockerfile: DAPR.Test.API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=***
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+    ports:
+      - "52000:50001"
+    volumes:
+      - ~/.aspnet/https:/https:ro
+
+  dapr.test.api-dapr:
+    image: "daprio/daprd:latest"
+    command: [ "./daprd", "--app-id", "API", "--app-port", "80", "--app-ssl" ]
+    depends_on:
+      - dapr.test.api
+    network_mode: "service:dapr.test.api"

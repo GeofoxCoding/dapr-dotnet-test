@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerComposeProjectPath>../docker-compose.dcproj</DockerComposeProjectPath>
+    <UserSecretsId>64e7970f-3528-44b1-9b2e-226ecd2097c2</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Dapr.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Dapr.AspNetCore" Version="1.9.0" />
+  </ItemGroup>
+</Project>
