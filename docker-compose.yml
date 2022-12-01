@@ -37,7 +37,7 @@ services:
       dockerfile: DAPR.Test.API/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - set_kestrel_cert_password
+      - /run/secrets/set_kestrel_cert_password
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     ports:
       - "52000:50001"
