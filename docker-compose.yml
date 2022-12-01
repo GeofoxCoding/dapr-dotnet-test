@@ -8,7 +8,7 @@ services:
   dapr.test.frontend:
     image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/frontend:0.0.1
     secrets:
-      - certificate_password
+      - set_kestrel_cert_password
     build:
       context: .
       dockerfile: DAPR.Test.Frontend/Dockerfile
@@ -31,13 +31,13 @@ services:
   dapr.test.api:
     image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/api:0.0.1
     secrets:
-      - certificate_password
+      - set_kestrel_cert_password
     build:
       context: .
       dockerfile: DAPR.Test.API/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=***
+      - set_kestrel_cert_password
       - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     ports:
       - "52000:50001"
