@@ -1,52 +1,72 @@
 version: '3.4'
 
-secrets:
-  set_kestrel_cert_password:
-    file: ./certificate_password.txt
+volumes:
+    prometheus_data: {}
 
 services:
+
   dapr.test.frontend:
-    image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/frontend:0.0.1
-    secrets:
-      - set_kestrel_cert_password
+    image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/frontend:0.0.9
     build:
       context: .
       dockerfile: DAPR.Test.Frontend/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - /run/secrets/set_kestrel_cert_password
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=${MCI_DEV_CERT_PWD}"
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/DAPR.Test.API.pfx
     ports:
       - "51000:50001"
+      - "5001:80"
+      - "5002:443"
     volumes:
-      - ~/.aspnet/https:/https:ro
+      - ~/.microsoft/usersecrets/:/root/.microsoft/usersecrets:ro
+      - ~/.aspnet/https/:/root/.aspnet/https/
+      - ~/Logs/:/root/Logs
 
   dapr.test.frontend-dapr:
     image: "daprio/daprd:latest"
-    command: [ "./daprd", "--app-id", "Frontend", "--app-port", "80", "--app-ssl" ]
+    command: [ "./daprd", "--app-id", "Frontend", "--app-port", "443", "--app-ssl" ]
     depends_on:
       - dapr.test.frontend
     network_mode: "service:dapr.test.frontend"
 
   dapr.test.api:
-    image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/api:0.0.1
-    secrets:
-      - set_kestrel_cert_password
+    image: ${DOCKER_REGISTRY-}bricksonawhale/dapr-test/api:0.0.4
     build:
       context: .
       dockerfile: DAPR.Test.API/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - /run/secrets/set_kestrel_cert_password
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=${MCI_DEV_CERT_PWD}"
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/root/.aspnet/https/DAPR.Test.API.pfx
     ports:
       - "52000:50001"
     volumes:
-      - ~/.aspnet/https:/https:ro
+      - ~/.microsoft/usersecrets/:/root/.microsoft/usersecrets:ro
+      - ~/.aspnet/https/:/root/.aspnet/https/
+      - ~/Logs/:/root/Logs
 
   dapr.test.api-dapr:
     image: "daprio/daprd:latest"
-    command: [ "./daprd", "--app-id", "API", "--app-port", "80", "--app-ssl" ]
+    command: [ "./daprd", "--app-id", "API", "--app-port", "443", "--app-ssl" ]
     depends_on:
       - dapr.test.api
     network_mode: "service:dapr.test.api"
+
+  prometheus:
+    image: prom/prometheus:v2.36.2
+    volumes:
+      - ~/Prometheus/config/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    depends_on:
+      - dapr.test.frontend-dapr
+      - dapr.test.api-dapr
+    network_mode: host
+    restart: always

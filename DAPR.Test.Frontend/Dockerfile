@@ -7,10 +7,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["DAPR.Test.Frontend.csproj", "DAPR.Test.Frontend/"]
-RUN dotnet restore "DAPR.Test.Frontend/DAPR.Test.Frontend.csproj"
+COPY *.sln .
+COPY ["./DAPR.Test.ApplicationLogic/DAPR.Test.ApplicationLogic.csproj", "DAPR.Test.ApplicationLogic/"]
+COPY ["./DAPR.Test.Frontend/DAPR.Test.Frontend.csproj", "DAPR.Test.Frontend/"]
+COPY ["./DAPR.Test.API/DAPR.Test.API.csproj", "DAPR.Test.API/"]
+COPY ["./docker-compose.dcproj", "./"]
+RUN dotnet restore "DAPR.Test.sln"
+COPY ["./DAPR.Test.ApplicationLogic/.", "DAPR.Test.ApplicationLogic/"]
+COPY ["./DAPR.Test.Frontend/.", "DAPR.Test.Frontend/"]
+COPY ["./DAPR.Test.API/.", "DAPR.Test.API/"]
 WORKDIR "/src/DAPR.Test.Frontend"
-COPY . .
 RUN dotnet build "DAPR.Test.Frontend.csproj" -c Release -o /app/build
 
 FROM build AS publish

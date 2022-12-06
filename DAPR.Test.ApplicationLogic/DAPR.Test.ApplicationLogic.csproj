@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="GetAllWeatherForecasts\" />
+    <None Remove="MediatR" />
+    <None Remove="Dapr.AspNetCore" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="GetAllWeatherForecasts\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="11.1.0" />
+    <PackageReference Include="Dapr.AspNetCore" Version="1.9.0" />
+  </ItemGroup>
+</Project>

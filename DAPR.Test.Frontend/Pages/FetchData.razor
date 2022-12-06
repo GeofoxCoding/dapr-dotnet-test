@@ -2,10 +2,12 @@
 
 <PageTitle>Weather forecast</PageTitle>
 
+@using MediatR
 @using DAPR.Test.Frontend.Data
-@using Dapr.Client
+@using DAPR.Test.ApplicationLogic.GetAllWeatherForecasts
 
-@inject DaprClient _daprClient
+@inject IMediator Mediator
+@inject ILogger<FetchData> Logger  
 
 <h1>Weather forecast</h1>
 
@@ -42,14 +44,13 @@ else
 
 @code {
 
-    private IEnumerable<WeatherForecast>? forecasts;
+    private IEnumerable<GetAllWeatherForecasts.Model>? forecasts;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await _daprClient.InvokeMethodAsync<IEnumerable<WeatherForecast>>(
-            HttpMethod.Get,
-            "API",
-            "weatherforecast");
+        Logger.LogDebug("Request forecasts from backend");
+        forecasts = await Mediator.Send(new GetAllWeatherForecasts.Query());
+        Logger.LogDebug("Got answer from Backend" + forecasts?.First().TemperatureC.ToString(), forecasts);
     }
 
 }
